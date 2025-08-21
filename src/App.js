@@ -71,9 +71,10 @@ function App() {
 
       <ul>
         {transactions.map((t) => (
-          <li key={t.id}>
-            {t.desc} - ${t.amount} ({t.type})
-          </li>
+<li key={t.id} className={t.type}>
+  {t.desc} - ${t.amount} ({t.type})
+</li>
+
         ))}
       </ul>
     </div>
