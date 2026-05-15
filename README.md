@@ -1,70 +1,114 @@
-# Getting Started with Create React App
+# InvoiceApp
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack invoice and billing application built with React + TypeScript (frontend) and Flask + PostgreSQL (backend). Features client management, invoice CRUD, status tracking, and PDF export.
 
-## Available Scripts
+## Tech Stack
 
-In the project directory, you can run:
+| Layer | Tech |
+|---|---|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, React Router v6, React Hook Form |
+| Backend | Python 3, Flask, SQLAlchemy, Flask-Migrate |
+| Database | PostgreSQL |
+| PDF | ReportLab |
+| Payments | Stripe *(coming soon)* |
 
-### `npm start`
+## Project Structure
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+Invoice App/
+├── backend/
+│   ├── app/
+│   │   ├── models/        # Client, Invoice, InvoiceItem
+│   │   ├── routes/        # clients, invoices, dashboard blueprints
+│   │   └── utils/         # PDF generator
+│   ├── requirements.txt
+│   └── run.py
+└── frontend/
+    ├── src/
+    │   ├── api/           # Axios API calls
+    │   ├── components/    # Layout, Sidebar, StatCard, StatusBadge
+    │   ├── pages/         # Dashboard, Invoices, InvoiceDetail, InvoiceForm, Clients
+    │   └── types/         # TypeScript interfaces
+    └── package.json
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Quick Start
 
-### `npm test`
+### 1. Install PostgreSQL
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+sudo apt update && sudo apt install -y postgresql postgresql-contrib
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
 
-### `npm run build`
+### 2. Create the database
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+sudo -u postgres psql -c "CREATE DATABASE invoice_app;"
+# Optional: set a password for the postgres user
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 3. Backend setup
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+cd backend
 
-### `npm run eject`
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# Install dependencies
+pip install -r requirements.txt
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Configure environment
+cp .env.example .env
+# Edit .env if your DB credentials differ
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# Run migrations
+flask --app run db init
+flask --app run db migrate -m "initial"
+flask --app run db upgrade
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# Start the API server (runs on port 5000)
+python run.py
+```
 
-## Learn More
+### 4. Frontend setup
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cd frontend
+npm install
+npm run dev   # runs on http://localhost:5173
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Code Splitting
+## API Endpoints
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+| Method | Path | Description |
+|---|---|---|
+| GET | /api/dashboard/stats | Dashboard KPIs |
+| GET | /api/clients | List all clients |
+| POST | /api/clients | Create client |
+| PUT | /api/clients/:id | Update client |
+| DELETE | /api/clients/:id | Delete client |
+| GET | /api/invoices | List invoices (optional ?status=) |
+| POST | /api/invoices | Create invoice |
+| GET | /api/invoices/:id | Invoice detail with items |
+| PUT | /api/invoices/:id | Update invoice |
+| PATCH | /api/invoices/:id/status | Update status only |
+| DELETE | /api/invoices/:id | Delete invoice |
+| GET | /api/invoices/:id/pdf | Download PDF |
 
-### Analyzing the Bundle Size
+## Invoice Statuses
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+`draft` → `sent` → `paid` or `overdue`
 
-### Making a Progressive Web App
+## Adding Stripe (next step)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. `pip install stripe`
+2. Add `STRIPE_SECRET_KEY` to `.env`
+3. Add a `/api/invoices/:id/payment-link` endpoint that creates a Stripe Payment Link
+4. Add `VITE_STRIPE_PUBLISHABLE_KEY` to `frontend/.env` for the hosted checkout
