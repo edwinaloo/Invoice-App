@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [chart, setChart] = useState<RevenueChartPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getDashboardStats(), getRevenueChart()])
@@ -34,6 +35,7 @@ export default function Dashboard() {
         setStats(s);
         setChart(c);
       })
+      .catch(() => setError("Could not load dashboard data. Please try again."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,6 +47,16 @@ export default function Dashboard() {
           {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-gray-200 rounded-xl" />)}
         </div>
         <div className="h-64 bg-gray-200 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-6 py-4 text-sm">
+          {error}
+        </div>
       </div>
     );
   }
