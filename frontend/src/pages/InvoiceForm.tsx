@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { getClients } from "../api/clients";
 import { createInvoice, getInvoice, updateInvoice } from "../api/invoices";
 import type { Client, CreateInvoicePayload } from "../types";
