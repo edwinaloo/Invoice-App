@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -20,7 +21,8 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     mail.init_app(app)
     jwt.init_app(app)
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+    allowed = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+    CORS(app, resources={r"/api/*": {"origins": allowed}})
 
     from .routes.clients import clients_bp
     from .routes.invoices import invoices_bp
